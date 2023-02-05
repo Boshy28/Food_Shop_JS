@@ -101,6 +101,7 @@ window.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', openModal)
     });
 
+
     function openModal() {
         modal.classList.add('show');
         modal.classList.remove('hide');
@@ -128,7 +129,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // const modalTimerId = setTimeout(openModal, 5000);
+    const modalTimerId = setTimeout(openModal, 5000);
 
     function showModalByScroll() {
         if (window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight) {
@@ -209,4 +210,57 @@ window.addEventListener('DOMContentLoaded', () => {
         'menu__item',
     ).render();
 
+    // Forms
+
+    const forms = document.querySelectorAll('form');
+
+    const message = {
+        loading: 'Loading',
+        success: 'Success',
+        failure: 'Failure'
+    }
+
+    forms.forEach(item => {
+        postData(item);
+    })
+
+    function postData(form) {
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const statusMessage = document.createElement('div');
+            statusMessage.classList.add('status');
+            statusMessage.textContent = message.loading;
+            form.append(statusMessage);
+
+            const request = new XMLHttpRequest();
+            request.open('POST', 'server.php');
+            
+            // request.setRequestHeader('Content-type', 'multipart/form-data');  // XMLHttpRequest + FormData не использует заголовки
+            request.setRequestHeader('Content-type', 'application/json');  // Отправка данных в JSON формате
+            const formData = new FormData(form);
+
+            const object = {};  // JSON конвертация
+            formData.forEach(function(value, key) {
+                object[key] = value;
+            });
+
+            request.send(JSON.stringify(object));  // JSON отправка
+            // request.send(formData);  // XMLHttpRequest
+
+            request.addEventListener('load', () => {
+                if (request.status === 200) {
+                    console.log(request.response);
+                    statusMessage.textContent = message.success;
+                    form.reset();
+                    setTimeout(() => {
+                        statusMessage.remove();
+                    }, 1000);
+                } else {
+                    statusMessage.textContent = message.failure;
+                }
+            });
+
+        });
+    }
 });
